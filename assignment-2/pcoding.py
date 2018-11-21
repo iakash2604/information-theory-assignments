@@ -1,11 +1,13 @@
 import numpy as np
 from functions import *
+import random
+
 def x2u(x):
     blocklength = len(x)
     n = np.log2(blocklength)
     base = np.asarray([[1, 0], [1, 1]])
     generator = base
-    for i in range(n-1):
+    for i in range(int(n)-1):
         generator = np.kron(generator, base)
 
     return np.dot(x, generator)
@@ -15,10 +17,33 @@ def u2x(u):
     n = np.log2(blocklength)
     base = np.asarray([[1, 1], [0, 1]])
     generator = base
-    for i in range(n-1):
+    for i in range(int(n)-1):
         generator = np.kron(generator, base)
 
     return np.dot(u, generator)
+
+def input_transform(x):
+
+    blocklength = len(x)
+
+    if(blocklength==1):
+        return x
+
+    x_odd = []
+    x_even = []
+    for i in range(blocklength):
+        if((i+1)%2==1):
+            x_odd.append(x[i])
+        else:
+            x_even.append(x[i])
+    x_mod_2 = []
+    for i in range(len(x_odd)):
+        x_mod_2.append((x_even[i]+x_odd[i])%2)
+    
+    x_first = input_transform(x_mod_2)
+    x_second = input_transform(x_even)
+
+    return x_first + x_second
 
 def z_bec(erasure, blocklength):
     # finds the bhattacharyya parameters for all the channels produced
@@ -49,6 +74,9 @@ def encoding(blocklength, good_channels, x):
     for i, z in enumerate(good_channels):
         encoded[int(z)] = x[i]
 
+    encoded = input_transform(encoded)
+    # encoded = x2u(encoded)
+    
     return encoded
 
 def decoding(y, good_channels):
@@ -159,6 +187,6 @@ def full_pass(x, erasure, blocklength):
     
     else:
         return -1
-        print("cant decode")
+        
 
 
